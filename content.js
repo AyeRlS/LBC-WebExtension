@@ -1,21 +1,21 @@
-function scrapeData() {
-    // Example scraping logic - you'll need to adjust this based on the actual website structure
-    let results = [];
-    let items = document.querySelectorAll('.result-item'); // Assuming each result has a class "result-item"
-    
-    items.forEach(item => {
-        // Example: get the title and link from each item
-        let title = item.querySelector('.title').innerText;
-        let link = item.querySelector('a').href;
+// Logic to click on the "Next" button
+function clickNextAndScrape() {
+    let nextPageButton = document.querySelector('YOUR_NEXT_BUTTON_SELECTOR_HERE');
+    if (nextPageButton && scrapedPages < 2) {
+        nextPageButton.click();
 
-        results.push({ title, link });
-    });
-
-    return results;
+        // Wait for the next page to load and then scrape again
+        setTimeout(() => {
+            scrapeData();
+            scrapedPages++;
+            clickNextAndScrape();
+        }, 5000);  // Adjust the delay as needed
+    } else {
+        // If no next button or reached the limit, send a message to the background to close the tab
+        chrome.runtime.sendMessage({ action: "closeTab" });
+    }
 }
 
-// When the scraping is done, send a message to background script to navigate to the next page
-chrome.runtime.sendMessage({
-    action: "scrapeComplete",
-    data: scrapeData()
-});
+scrapeData();
+scrapedPages++;
+clickNextAndScrape();
