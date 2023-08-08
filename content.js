@@ -63,11 +63,11 @@ const clickNextButton = async () => {
 const scrapeAllResults = async () => {
     let allResults = [];
     let shouldContinue = true;
-    let currentPage = 1;
+    let currentPage = 0;
 
-    while (shouldContinue && currentPage++ < 3) {
+    while (shouldContinue && currentPage++ < 10) {
         const currentPageResults = await scrapeCurrentPage();
-        allResults.push(...currentPageResults.map((el) => el.href)));
+        allResults.push(...currentPageResults.map((el) => el.href));
 
         // Check if there's a next button and click it
         const clicked = await clickNextButton();
@@ -80,7 +80,16 @@ const scrapeAllResults = async () => {
 
 // Start the scraping process
 const getUrls = async () => {
-    const results = await scrapeAllResults();
-    // Some debug that will be done later
+    const results = await (await scrapeAllResults()).map((url) => {
+        const tmp = new URL(url);
+        return `${tmp.origin}${tmp.pathname}`;
+    }).filter(elm => elm.includes('people/headless'));
+    chrome.runtime.sendMessage({
+        action: "scrapedUrls",
+        data: results
+    });
+    chrome.runtime.sendMessage({
+        action: "closeTab"
+    });
 };
 
