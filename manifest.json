@@ -3,10 +3,14 @@
   "name": "Web Scraper Extension",
   "version": "1.0",
   "description": "A simple web scraper extension for Chrome.",
-  "permissions": ["activeTab"],
+  "permissions": ["activeTab", "storage", "https://*.linkedin.com/*", "tabs", "scripting"],
   "background": {
     "service_worker": "background.js"
   },
+  "host_permissions": [
+    "https://*.linkedin.com/in/*",
+    "https://*.linkedin.com/search/results/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -16,5 +20,18 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
-  }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "19": "icons/icon19.png",
+    "38": "icons/icon38.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.linkedin.com/in/*"],
+      "js": ["scrape.js"]
+    }
+  ]
 }

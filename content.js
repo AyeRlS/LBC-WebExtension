@@ -44,6 +44,24 @@ const waitForElements = async (selector, maxWait = 10000, interval = 500) => {
     });
 };
 
+const observer = new MutationObserver(mutations => {
+    // Check if the loader is still present
+    const loader = document.querySelector('main .pvs-loader__shimmer');
+    
+    if (!loader) {
+        const pageHTML = document.documentElement.outerHTML;
+        console.log(pageHTML);
+        observer.disconnect();  // Stop observing
+        chrome.runtime.sendMessage({ action: "scrapedPage", data: pageHTML });
+    }
+});
+
+observer.observe(document.body, {
+    childList: true,
+    subtree: true
+});
+
+
 const scrapeCurrentPage = async () => {
     return await waitForElements('.search-results-container ul .entity-result__title-line a.app-aware-link');
 };
@@ -60,12 +78,14 @@ const clickNextButton = async () => {
     });
 };
 
+
 const scrapeAllResults = async () => {
     let allResults = [];
     let shouldContinue = true;
     let currentPage = 0;
 
     while (shouldContinue && currentPage++ < 10) {
+        await waitForElement('.search-results-container ul .entity-result__title-line a.app-aware-link')
         const currentPageResults = await scrapeCurrentPage();
         allResults.push(...currentPageResults.map((el) => el.href));
 
@@ -83,7 +103,7 @@ const getUrls = async () => {
     const results = await (await scrapeAllResults()).map((url) => {
         const tmp = new URL(url);
         return `${tmp.origin}${tmp.pathname}`;
-    }).filter(elm => elm.includes('people/headless'));
+    });
     chrome.runtime.sendMessage({
         action: "scrapedUrls",
         data: results
@@ -93,3 +113,4 @@ const getUrls = async () => {
     });
 };
 
+getUrls();
